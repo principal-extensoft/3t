@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ES6 Moduleization Analysis - Tracker.js</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #764ba2;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+    }
+    h2 {
+      color: #667eea;
+      margin-top: 40px;
+      border-left: 4px solid #764ba2;
+      padding-left: 15px;
+    }
+    h3 {
+      color: #555;
+      margin-top: 25px;
+      font-size: 1.3rem;
+    }
+    .module-card {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      border-left: 5px solid #667eea;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .module-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #764ba2;
+    }
+    .module-badge {
+      background: #667eea;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .module-purpose {
+      background: rgba(255,255,255,0.7);
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-style: italic;
+      color: #555;
+    }
+    .section {
+      margin: 15px 0;
+    }
+    .section-title {
+      font-weight: 600;
+      color: #764ba2;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+    ul {
+      margin: 5px 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 6px 0;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: "Courier New", monospace;
+      color: #e83e8c;
+      font-size: 0.9em;
+    }
+    .api-signature {
+      background: #2d3748;
+      color: #68d391;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
+      font-size: 0.9rem;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    .dependency-list {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .metric {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 6px;
+      margin: 5px;
+      font-weight: 600;
+    }
+    .summary-box {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 25px 0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .migration-order {
+      background: #d4edda;
+      border: 1px solid #28a745;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .migration-step {
+      padding: 10px;
+      margin: 8px 0;
+      background: white;
+      border-radius: 4px;
+      border-left: 3px solid #28a745;
+    }
+    .priority-high { border-left-color: #dc3545; }
+    .priority-med { border-left-color: #ffc107; }
+    .priority-low { border-left-color: #28a745; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 ES6 Moduleization Analysis: tracker.js → Modular Architecture</h1>
+    
+    <div class="summary-box">
+      <h3>Current State Analysis</h3>
+      <p><strong>File:</strong> <code>c:\github\repos\tracker\js\tracker.js</code></p>
+      <p><strong>Size:</strong> ~11,862 lines of JavaScript (single monolithic file)</p>
+      <p><strong>Functions:</strong> ~200+ functions identified</p>
+      <p><strong>Characteristics:</strong></p>
+      <ul>
+        <li>✅ Already uses ES6 module import for <code>idb</code></li>
+        <li>⚠️ Global state scattered throughout (e.g., <code>currentView</code>, <code>monthOffset</code>, <code>spaceportSession</code>)</li>
+        <li>⚠️ Many <code>window.*</code> function exports for inline HTML handlers</li>
+        <li>⚠️ Tightly coupled view rendering and business logic</li>
+        <li>✅ Well-structured domain areas (DB, Tasks, Calendar, SpacePort, Reports)</li>
+      </ul>
+      
+      <div style="margin-top: 20px;">
+        <span class="metric">Core: 8 domains</span>
+        <span class="metric">Proposed: 16 modules</span>
+        <span class="metric">~750 LOC/module avg</span>
+      </div>
+    </div>
+
+    <h2>📦 Proposed ES6 Module Architecture</h2>
+
+    <!-- Module 1: Database Core -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">1. db.mjs</div>
+        <div class="module-badge">Foundation Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Central database initialization, schema management, and migrations. Provides the single source of truth for IndexedDB access.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Initialize and upgrade IndexedDB schema (10 tables)</li>
+          <li>Run all migration scripts (tasks, todos, remaining hours, status history)</li>
+          <li>Expose <code>dbPromise</code> for all other modules</li>
+          <li>Seed sample data (category lists)</li>
+          <li>Database statistics and health checks</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export const dbPromise: Promise&lt;IDBDatabase&gt;
+export async function getDatabaseStats(): Promise&lt;DbStats&gt;
+export async function migrateAll(): Promise&lt;void&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>External:</strong> <code>idb</code> (openDB from CDN)
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 1-375 of tracker.js (DB setup, migrations, state transitions)</p>
+      </div>
+    </div>
+
+    <!-- Module 2: Task Service -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">2. task-service.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> CRUD operations for tasks, validation, filtering, and state management. Domain model for tasks.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Task CRUD: <code>saveTask</code>, <code>deleteTask</code>, <code>getTasks</code></li>
+          <li>Status history tracking and transition validation</li>
+          <li>Task filtering (status, urgency, date ranges)</li>
+          <li>Remaining hours updates and burn-down tracking</li>
+          <li>Task queries for views (board, calendar, today)</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function saveTask(task, isEdit): Promise&lt;boolean&gt;
+export async function deleteTask(taskId): Promise&lt;void&gt;
+export async function getTasks(filters, includeAll): Promise&lt;Task[]&gt;
+export async function updateRemainingHours(taskId, hours, note): Promise&lt;boolean&gt;
+export async function getTaskCompletionDate(task): Promise&lt;string|null&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>db.mjs</code> (dbPromise)<br>
+          <strong>Constants:</strong> <code>stateTransitions</code> map
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 376-650 (saveTask, getTasks, updateRemainingHours, deleteTask, state validation)</p>
+      </div>
+    </div>
+
+    <!-- Module 3: Time Log Service -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">3. timelog-service.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Manage time logging for tasks, including validation, aggregation, and category-based analysis.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Time log CRUD: <code>saveTimeLog</code>, <code>deleteTimeLog</code>, <code>getTimeLogs</code></li>
+          <li>Validate task status before logging time</li>
+          <li>Aggregate time by date, task, category</li>
+          <li>Category-based time analysis for reports</li>
+          <li>Work session integration</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function saveTimeLog(timeLog): Promise&lt;boolean&gt;
+export async function deleteTimeLog(logId): Promise&lt;void&gt;
+export async function getTimeLogs(taskId, startDate, endDate): Promise&lt;TimeLog[]&gt;
+export async function analyzeCategoriesInTimeLogs(logs): Promise&lt;CategoryAnalysis&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>db.mjs</code>, <code>task-service.mjs</code>, <code>category-service.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 481-615 (saveTimeLog, getTimeLogs, deleteTimeLog) + Lines 6015-6100 (category analysis)</p>
+      </div>
+    </div>
+
+    <!-- Module 4: Project & Category Service -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">4. category-service.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Manage projects, phases, and category lists for task organization and time categorization.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Category lists CRUD and slug generation</li>
+          <li>Projects CRUD and dropdown population</li>
+          <li>Phase lists CRUD and hierarchical management</li>
+          <li>Task-to-category assignment</li>
+          <li>Available categories for tasks based on selected lists</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function getCategoryLists(): Promise&lt;CategoryList[]&gt;
+export async function saveCategoryList(list): Promise&lt;number&gt;
+export async function getProjects(): Promise&lt;Project[]&gt;
+export async function saveProject(project): Promise&lt;number&gt;
+export async function getPhaseLists(): Promise&lt;PhaseList[]&gt;
+export async function getTaskAvailableCategories(taskId): Promise&lt;Category[]&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>db.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 4617-5610 (Category lists, projects, phases, slug generation, CRUD operations)</p>
+      </div>
+    </div>
+
+    <!-- Module 5: Todo & Accomplishments -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">5. daily-service.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Manage daily todos and accomplishments for the Today view.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Todos: create, toggle completion, delete, load by date</li>
+          <li>Accomplishments: create, delete, load by date</li>
+          <li>Date-independent structure with <code>createdAt</code> and <code>completedAt</code></li>
+          <li>Persistence to <code>todos</code> and <code>accomplishments</code> tables</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function saveTodo(title, content): Promise&lt;number&gt;
+export async function toggleTodo(todoId): Promise&lt;void&gt;
+export async function deleteTodo(todoId): Promise&lt;void&gt;
+export async function loadTodos(includeCompleted): Promise&lt;Todo[]&gt;
+export async function saveAccomplishment(title, content): Promise&lt;number&gt;
+export async function deleteAccomplishment(accId): Promise&lt;void&gt;
+export async function loadAccomplishments(date): Promise&lt;Accomplishment[]&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>db.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 6768-7360 (saveTodo, toggleTodo, deleteTodo, saveAccomplishment, deleteAccomplishment, load functions)</p>
+      </div>
+    </div>
+
+    <!-- Module 6: Work Session Service -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">6. work-session-service.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Manage punch clock / work session tracking for time-based work logging.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Punch in/out operations</li>
+          <li>Work session state management</li>
+          <li>Break time tracking</li>
+          <li>Work session queries by date range</li>
+          <li>Integration with SpacePort view</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function punchIn(): Promise&lt;number&gt;
+export async function punchOut(): Promise&lt;void&gt;
+export async function getCurrentWorkSession(): Promise&lt;WorkSession|null&gt;
+export async function getWorkSessionsForDateRange(start, end): Promise&lt;WorkSession[]&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>db.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 6200-6650 (punch clock functions, work session state, queries - scattered, needs extraction)</p>
+      </div>
+    </div>
+
+    <!-- Module 7: State Management Service -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">7. state-service.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Centralized state management for global application state (navigation, filters, UI state). Eliminates scattered global variables.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Navigation state: <code>currentView</code>, <code>monthOffset</code></li>
+          <li>Global filters: project, phase, status, urgency filters</li>
+          <li>Task filter state: today/thisWeek/nextWeek for Today view</li>
+          <li>Spaceport session state: <code>spaceportSession</code> object</li>
+          <li>Persist state to localStorage/sessionStorage where appropriate</li>
+          <li>State change notifications (optional observers)</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+// Navigation state
+export function getCurrentView(): string
+export function setCurrentView(view: string): void
+export function getMonthOffset(): number
+export function setMonthOffset(offset: number): void
+
+// Filters
+export function getGlobalFilters(): FilterState
+export function setGlobalFilter(key: string, value: any): void
+export function clearGlobalFilters(): void
+
+// Spaceport state
+export function getSpaceportSession(): SpaceportState
+export function updateSpaceportSession(updates: Partial&lt;SpaceportState&gt;): void
+export function resetSpaceportSession(): void
+
+// Current task filter (Today view)
+export function getCurrentTaskFilter(): string
+export function setCurrentTaskFilter(filter: string): void</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>External:</strong> localStorage, sessionStorage (Browser APIs)<br>
+          <strong>Internal:</strong> None (foundation layer)
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 1-20 (currentView, monthOffset, spaceportSession globals) + scattered filter state throughout</p>
+      </div>
+    </div>
+
+    <!-- Module 8: Import/Export Service -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">8. import-export.mjs</div>
+        <div class="module-badge">Business Logic</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Handle data backup and restoration via JSON files using File System Access API. Ensures data portability and backup capabilities.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Export all database tables to JSON file (with timestamp)</li>
+          <li>Import JSON and restore all tables</li>
+          <li>Validate imported data structure and schema version</li>
+          <li>Handle file picker dialogs (save/open)</li>
+          <li>Migration of imported data to current schema if needed</li>
+          <li>Graceful fallback if File System Access API unavailable</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function exportData(): Promise&lt;void&gt;
+export async function importData(file): Promise&lt;boolean&gt;
+export function isFileSystemAccessSupported(): boolean</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>db.mjs</code><br>
+          <strong>Browser APIs:</strong> File System Access API (showSaveFilePicker, showOpenFilePicker)
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 4414-4615 (exportData, importData, file picker handling)</p>
+      </div>
+    </div>
+
+    <!-- Module 9: Calendar Renderer -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">9. calendar-view.mjs</div>
+        <div class="module-badge">View Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Render calendar (month) view with task progress bars, work sessions, and interactive day/week selection.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Generate month calendar grid (weeks × days)</li>
+          <li>Build task progress bars per day (color-coded by urgency/status)</li>
+          <li>Display work session indicators</li>
+          <li>Handle day/week selection for detail pane</li>
+          <li>Calendar filters (status, urgency)</li>
+          <li>Tooltips and interactive hover states</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function renderCalendarView(year, month, tasks, filters): Promise&lt;HTMLElement&gt;
+export function getMonthCalendar(year, month): number[][]
+export async function buildProgressBars(tasks, date): Promise&lt;string&gt;
+export async function buildTimeIndicators(tasks, date, session): Promise&lt;string&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>task-service.mjs</code>, <code>timelog-service.mjs</code>, <code>work-session-service.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 720-1815 + 8539-8900 (calendar generation, progress bars, time indicators, tooltips)</p>
+      </div>
+    </div>
+
+    <!-- Module 10: Board View -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">10. board-view.mjs</div>
+        <div class="module-badge">View Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Render Kanban board with drag-and-drop, task cards, and detail pane for task inspection.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Render Kanban lanes (Backlog, In Progress, Blocked, Done)</li>
+          <li>Generate task cards with progress indicators</li>
+          <li>Drag-and-drop status transitions</li>
+          <li>Task detail pane with burn-down chart</li>
+          <li>Quick time logging buttons on cards</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function renderBoardView(tasks): Promise&lt;HTMLElement&gt;
+export function initializeDragAndDrop(): void
+export async function renderTaskDetailPane(taskId): Promise&lt;void&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>task-service.mjs</code>, <code>timelog-service.mjs</code>, <code>category-service.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 650-720 (drag-drop) + 772-1815 (board rendering in renderTasks) + 8895-9550 (board task detail pane)</p>
+      </div>
+    </div>
+
+    <!-- Module 11: Today View -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">11. today-view.mjs</div>
+        <div class="module-badge">View Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Render Today dashboard with todos, accomplishments, work session status, and task overview.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Render todo list with inline creation form</li>
+          <li>Render accomplishments with inline form</li>
+          <li>Display work session metrics (total hours, work hours, break hours)</li>
+          <li>Task overview with filters (today/this week/next week)</li>
+          <li>Bind event handlers for todos, accomplishments, punch clock</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function renderTodayView(): Promise&lt;HTMLElement&gt;
+export async function loadTodayData(): Promise&lt;void&gt;
+export async function loadTasksOverview(filter): Promise&lt;Task[]&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>daily-service.mjs</code>, <code>task-service.mjs</code>, <code>work-session-service.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 6643-7497 (loadTodayData, updateTodayWorkSession, loadTasksOverview, filter handlers)</p>
+      </div>
+    </div>
+
+    <!-- Module 12: SpacePort View -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">12. spaceport-view.mjs</div>
+        <div class="module-badge">View Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Render the animated SpacePort time tracking canvas with rockets, launch pads, and category selection.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Initialize canvas and animation loop</li>
+          <li>Deploy rockets for tasks, manage rocket state</li>
+          <li>Render rocket types (Scout, V2, Apollo) with animations</li>
+          <li>Draw environment (stars, horizon, energy tower, Tesla lightning)</li>
+          <li>Handle category selection for rockets</li>
+          <li>Launch rockets and save time to database</li>
+          <li>Mission control interface and active missions</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function initializeSpaceport(): Promise&lt;void&gt;
+export function deployRocket(task): void
+export async function launchActiveRocket(): Promise&lt;void&gt;
+export function startSpaceportAnimation(): void</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>task-service.mjs</code>, <code>timelog-service.mjs</code>, <code>category-service.mjs</code><br>
+          <strong>Canvas:</strong> Canvas 2D rendering context
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 1816-4389 (Entire spaceport system: initialization, rocket management, rendering, animations)</p>
+      </div>
+    </div>
+
+    <!-- Module 13: Work Tab -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">13. work-view.mjs</div>
+        <div class="module-badge">View Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Render detailed task editing interface (Work tab) with time logging, category assignment, and personal velocity prediction.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Render full task editing form (all fields)</li>
+          <li>Time logging interface with category selection</li>
+          <li>Personal velocity calculation (EVMS-style)</li>
+          <li>Remaining hours management and burn-down tracking</li>
+          <li>Status history visualization</li>
+          <li>Three-point estimation sliders</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function renderWorkInterface(taskId): Promise&lt;void&gt;
+export async function handleWorkFormSubmit(e): Promise&lt;void&gt;
+export async function calculatePersonalVelocity(): Promise&lt;VelocityData&gt;
+export async function updateVelocityPrediction(): Promise&lt;void&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>task-service.mjs</code>, <code>timelog-service.mjs</code>, <code>category-service.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 7497-8450 (renderWorkInterface, handleWorkFormSubmit, velocity calculations, estimation sliders)</p>
+      </div>
+    </div>
+
+    <!-- Module 14: Reports View -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">14. reports-view.mjs</div>
+        <div class="module-badge">View Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Generate comprehensive reports (timesheet, accomplishments, task progress, work sessions) with markdown export.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Render report settings interface</li>
+          <li>Generate time period reports (week, month, custom)</li>
+          <li>Aggregate data from tasks, time logs, work sessions</li>
+          <li>Category-based analytics</li>
+          <li>Export as Markdown for sharing</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function renderReportsView(): Promise&lt;HTMLElement&gt;
+export async function generateReport(settings): Promise&lt;Report&gt;
+export function exportReportAsMarkdown(report): string</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>task-service.mjs</code>, <code>timelog-service.mjs</code>, <code>daily-service.mjs</code>, <code>work-session-service.mjs</code>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 9838-10700 (generateReport, updateReportDates, exportReportAsMarkdown, report rendering)</p>
+      </div>
+    </div>
+
+    <!-- Module 15: UI Controller / Router -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">15. app-controller.mjs</div>
+        <div class="module-badge">Orchestration Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Main application controller that orchestrates view rendering, navigation, and global event handling.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>View routing (board, calendar, today, spaceport, work, reports, all)</li>
+          <li>Navigation state management (<code>currentView</code>, <code>monthOffset</code>)</li>
+          <li>Global filters (project, phase, status, urgency)</li>
+          <li>Modal initialization (task details, time log, category lists, projects, phases)</li>
+          <li>Quick add form handling</li>
+          <li>Sidebar toggle and state</li>
+          <li>Window-level event handlers for inline HTML calls</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export async function renderTasks(view): Promise&lt;void&gt;
+export function navigatePeriod(direction): void
+export function goToToday(): void
+export function initializeApp(): void
+
+// Window-level exports for inline handlers
+export function editTask(taskId): void
+export function toggleSidebar(): void
+export function showQuickAdd(): void
+export function manageCategoryLists(): void
+export function manageProjects(): void
+export function managePhases(): void</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> All view modules, all service modules, <code>state-service.mjs</code><br>
+          <strong>Role:</strong> Acts as the main orchestrator and entry point
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 772-1815 (main renderTasks dispatcher) + 10700-11862 (initialization, modals, window exports, sidebar, filters)</p>
+      </div>
+    </div>
+
+    <!-- Module 16: UI Utilities -->
+    <div class="module-card">
+      <div class="module-header">
+        <div class="module-title">16. ui-utils.mjs</div>
+        <div class="module-badge">Utility Layer</div>
+      </div>
+      <div class="module-purpose">
+        <strong>Purpose:</strong> Shared UI helpers, color schemes, badge generation, date utilities, and toast notifications.
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Responsibilities</div>
+        <ul>
+          <li>Color getters: <code>getStatusColor</code>, <code>getUrgencyColor</code>, <code>getImportanceColor</code></li>
+          <li>Status icons: <code>getStatusIcon</code></li>
+          <li>Toast notifications: <code>showToast</code>, <code>showErrorToast</code></li>
+          <li>Badge generation: project/phase badges HTML</li>
+          <li>Date range calculation: <code>getDateRange</code></li>
+          <li>Task bar color classes for calendar</li>
+        </ul>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Exports (Public API)</div>
+        <div class="api-signature">
+export function getStatusColor(status): string
+export function getUrgencyColor(urgency): string
+export function getStatusIcon(status): string
+export function showToast(type, message, duration): void
+export function getDateRange(view): { startDate, endDate, periodLabel }
+export async function generateTaskBadgesHTML(task): Promise&lt;string&gt;</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Dependencies</div>
+        <div class="dependency-list">
+          <strong>Internal:</strong> <code>category-service.mjs</code> (for badge generation)<br>
+          <strong>External:</strong> Bootstrap (Toast API)
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Source Lines</div>
+        <p>~Lines 615-650 (date utilities) + 754-771 (badge generation) + 7334-7360 (error toast) + 8223-8282 (color/icon helpers) + 10635-10740 (toast system)</p>
+      </div>
+    </div>
+
+    <h2>🔗 Module Dependency Graph</h2>
+    <div class="summary-box">
+      <pre style="background: #2d3748; color: #68d391; padding: 20px; border-radius: 8px; overflow-x: auto; font-family: monospace;">
+┌─────────────────────────────────────────────────────────────────────┐
+│                         External Dependencies                        │
+│  • idb (openDB from CDN)                                            │
+│  • Bootstrap (modals, toasts)                                       │
+│  • Browser APIs (File System Access, Canvas 2D, IndexedDB)         │
+└─────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Foundation Layer                             │
+│  <strong>db.mjs</strong> ────────────────────────────  <strong>state-service.mjs</strong> ─────────────│
+│  (DB schema, migrations)              (Global state management)     │
+│                                                                      │
+│                     <strong>ui-utils.mjs</strong> ─────────────────────────────────│
+│                     (Colors, badges, toasts, dates)                 │
+└─────────────────────────────────────────────────────────────────────┘
+                          ↓          ↓          ↓
+        ┌─────────────────┴──────────┴──────────┴─────────────────┐
+        ↓                  ↓                     ↓                 ↓
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│task-service  │  │timelog-      │  │category-     │  │daily-service │
+│.mjs          │  │service.mjs   │  │service.mjs   │  │.mjs          │
+│              │  │              │  │              │  │              │
+│• Task CRUD   │  │• Time logs   │  │• Projects    │  │• Todos       │
+│• Status hist │  │• Validation  │  │• Phases      │  │• Accomp.     │
+│• Remaining h │  │• Category    │  │• Cat. lists  │  │              │
+└──────────────┘  │  analysis    │  └──────────────┘  └──────────────┘
+                  └──────────────┘
+        ↓                  ↓                     ↓                 ↓
+        └─────────────────┬──────────┬──────────┴─────────────────┘
+                          ↓          ↓          ↓
+        ┌─────────────────┴──────────┴──────────┴─────────────────┐
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│work-session- │  │import-export │  │(state &      │  │              │
+│service.mjs   │  │.mjs          │  │ ui-utils     │  │              │
+│              │  │              │  │ available)   │  │              │
+│• Punch clock │  │• Export JSON │  │              │  │              │
+│• Sessions    │  │• Import JSON │  │              │  │              │
+└──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘
+                          ↓
+        ┌─────────────────┴──────────────────────────────────────┐
+        ↓                  ↓          ↓          ↓                ↓
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│calendar-view │  │board-view    │  │today-view    │  │spaceport-view│
+│.mjs          │  │.mjs          │  │.mjs          │  │.mjs          │
+│              │  │              │  │              │  │              │
+│• Month grid  │  │• Kanban      │  │• Dashboard   │  │• SpacePort   │
+│• Progress    │  │• Drag-drop   │  │• Todos       │  │• Rockets     │
+│  bars        │  │• Detail pane │  │• Accomp.     │  │• Animation   │
+└──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘
+
+┌──────────────┐  ┌──────────────┐
+│work-view.mjs │  │reports-view  │
+│              │  │.mjs          │
+│• Task editor │  │              │
+│• Time log UI │  │• Report gen  │
+│• Velocity    │  │• MD export   │
+└──────────────┘  └──────────────┘
+        ↓                  ↓
+        └─────────────────┬──────────────────────────────────────┐
+                          ↓                                       ↓
+                  ┌──────────────┐                        ┌──────────────┐
+                  │app-controller│ ←──────── entry ────── │index.html    │
+                  │.mjs          │            point       │              │
+                  │              │                        │<script       │
+                  │• View router │                        │ type=module  │
+                  │• Nav state   │                        │ src=app-     │
+                  │  (via state- │                        │ controller   │
+                  │   service)   │                        │ .mjs>        │
+                  │• Modals init │                        │              │
+                  │• Window API  │                        └──────────────┘
+                  └──────────────┘
+      </pre>
+    </div>
+
+    <h2>📋 Migration Strategy</h2>
+    <div class="migration-order">
+      <h3>Recommended Migration Order (Bottom-Up)</h3>
+      
+      <div class="migration-step priority-high">
+        <strong>Phase 1: Foundation</strong> (High Priority)
+        <ol>
+          <li><code>db.mjs</code> - Extract DB init, schema, migrations first</li>
+          <li><code>state-service.mjs</code> - Extract global state management (currentView, filters, spaceportSession)</li>
+          <li><code>ui-utils.mjs</code> - Extract shared utilities with no business logic dependencies</li>
+        </ol>
+        <p><strong>Why first?</strong> These have zero/minimal internal dependencies and are used by everything else. State service eliminates global variables.</p>
+      </div>
+      
+      <div class="migration-step priority-high">
+        <strong>Phase 2: Core Services</strong> (High Priority)
+        <ol start="4">
+          <li><code>task-service.mjs</code> - Core domain model</li>
+          <li><code>timelog-service.mjs</code> - Time tracking logic</li>
+          <li><code>category-service.mjs</code> - Projects, phases, categories</li>
+          <li><code>daily-service.mjs</code> - Todos/accomplishments</li>
+          <li><code>work-session-service.mjs</code> - Punch clock</li>
+          <li><code>import-export.mjs</code> - Data backup/restore</li>
+        </ol>
+        <p><strong>Why second?</strong> Business logic layer with minimal cross-dependencies. Can be tested in isolation.</p>
+      </div>
+      
+      <div class="migration-step priority-med">
+        <strong>Phase 3: View Modules</strong> (Medium Priority)
+        <ol start="12">
+          <li><code>calendar-view.mjs</code> - Depends on task-service, timelog-service, state-service</li>
+          <li><code>board-view.mjs</code> - Depends on task-service, timelog-service</li>
+          <li><code>today-view.mjs</code> - Depends on daily-service, task-service, state-service</li>
+          <li><code>work-view.mjs</code> - Depends on task-service, timelog-service, category-service</li>
+          <li><code>spaceport-view.mjs</code> - Most complex, depends on task-service, timelog-service, category-service, state-service</li>
+          <li><code>reports-view.mjs</code> - Depends on all services</li>
+        </ol>
+        <p><strong>Why third?</strong> View layer depends on services being stable. Can migrate one view at a time while keeping others in legacy code.</p>
+      </div>
+      
+      <div class="migration-step priority-low">
+        <strong>Phase 4: Orchestration</strong> (Low Priority - Last)
+        <ol start="18">
+          <li><code>app-controller.mjs</code> - Main entry point that wires everything together</li>
+        </ol>
+        <p><strong>Why last?</strong> This is the glue layer. Once all other modules are extracted, this becomes mostly routing and initialization. Uses state-service instead of managing state directly.</p>
+      </div>
+    </div>
+
+    <h2>🎯 Key Design Principles</h2>
+    <div class="summary-box">
+      <h3>Loose Coupling</h3>
+      <ul>
+        <li>✅ Service modules only depend on <code>db.mjs</code> and each other (minimal)</li>
+        <li>✅ View modules never import other view modules</li>
+        <li>✅ All communication through explicit exports/imports (no global state)</li>
+        <li>✅ Each module has a single, clear responsibility</li>
+      </ul>
+      
+      <h3>High Cohesion</h3>
+      <ul>
+        <li>✅ Related functions grouped together (e.g., all task CRUD in task-service)</li>
+        <li>✅ Data access and business logic separated from view rendering</li>
+        <li>✅ Each module has a well-defined public API surface</li>
+        <li>✅ Internal functions kept private (not exported)</li>
+      </ul>
+      
+      <h3>Testability</h3>
+      <ul>
+        <li>✅ Pure functions for utilities (date, colors, badges)</li>
+        <li>✅ Service layer can be tested without DOM</li>
+        <li>✅ View modules receive data as parameters (can mock services)</li>
+        <li>✅ Database access centralized through dbPromise</li>
+      </ul>
+      
+      <h3>Maintainability</h3>
+      <ul>
+        <li>✅ Clear file naming: <code>*-service.mjs</code> for business logic, <code>*-view.mjs</code> for UI</li>
+        <li>✅ Modules avg ~1000 LOC (down from 11,862 monolith)</li>
+        <li>✅ Explicit dependencies via imports (no hunting for globals)</li>
+        <li>✅ Easy to locate functionality by domain</li>
+      </ul>
+    </div>
+
+    <h2>⚠️ Migration Challenges</h2>
+    <div class="summary-box">
+      <h3>1. Global State Management</h3>
+      <p><strong>Current:</strong> Top-level variables like <code>currentView</code>, <code>monthOffset</code>, <code>spaceportSession</code></p>
+      <p><strong>Solution:</strong> ✅ <strong>Solved by state-service.mjs</strong> - Centralized state module with getters/setters. Views import state functions instead of accessing globals. Enables state persistence to localStorage and potential future observers/reactivity.</p>
+      
+      <h3>2. Window-Level Function Exports</h3>
+      <p><strong>Current:</strong> Many <code>window.* = function() {...}</code> for inline HTML handlers</p>
+      <p><strong>Solution:</strong> Keep these in <code>app-controller.mjs</code> as a compatibility layer, gradually refactor HTML to use event delegation instead of inline handlers</p>
+      
+      <h3>3. Circular Dependencies</h3>
+      <p><strong>Risk:</strong> Task-service needs timelog-service for progress, timelog-service needs task-service for validation</p>
+      <p><strong>Solution:</strong> Use narrow, specific imports. Ensure each module exports only what's needed. If circular, extract shared interface to a types file.</p>
+      
+      <h3>4. Testing Without Server</h3>
+      <p><strong>Current:</strong> ES6 modules work from file:// in modern browsers for local dev</p>
+      <p><strong>Ensure:</strong> All module paths are relative (<code>./db.mjs</code>, not <code>/js/db.mjs</code>) and file extension is explicit (<code>.mjs</code>)</p>
+    </div>
+
+    <h2>✅ Next Steps</h2>
+    <div class="summary-box">
+      <ol style="font-size: 1.1rem; line-height: 2;">
+        <li>✅ <strong>Review this analysis</strong> - Confirm module boundaries and responsibilities</li>
+        <li>🔲 <strong>Start Phase 1</strong> - Extract <code>db.mjs</code> and <code>ui-utils.mjs</code></li>
+        <li>🔲 <strong>Update index.html</strong> - Import <code>app-controller.mjs</code> as module entry point</li>
+        <li>🔲 <strong>Extract services</strong> - One at a time, test in isolation</li>
+        <li>🔲 <strong>Migrate views</strong> - Start with simplest (today-view), end with most complex (spaceport-view)</li>
+        <li>🔲 <strong>Wire app-controller</strong> - Final orchestration layer</li>
+        <li>🔲 <strong>Remove tracker.js</strong> - Once fully migrated and tested</li>
+      </ol>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; color: #999; font-size: 0.9rem;">
+      <p>Generated: October 24, 2025</p>
+      <p>Target: ES6 Modules with .mjs extensions in <code>c:\github\repos\tracker\js\</code></p>
+    </div>
+  </div>
+</body>
+</html>
