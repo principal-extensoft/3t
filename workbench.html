@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>workbench</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script type="module" crossorigin>(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const n of document.querySelectorAll('link[rel="modulepreload"]'))s(n);new MutationObserver(n=>{for(const a of n)if(a.type==="childList")for(const o of a.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&s(o)}).observe(document,{childList:!0,subtree:!0});function e(n){const a={};return n.integrity&&(a.integrity=n.integrity),n.referrerPolicy&&(a.referrerPolicy=n.referrerPolicy),n.crossOrigin==="use-credentials"?a.credentials="include":n.crossOrigin==="anonymous"?a.credentials="omit":a.credentials="same-origin",a}function s(n){if(n.ep)return;n.ep=!0;const a=e(n);fetch(n.href,a)}})();let f;async function L(){return new Promise((r,t)=>{const e=indexedDB.open("workbench_DB",1);e.onerror=()=>t(e.error),e.onsuccess=()=>{f=e.result,console.log("[DB] Database opened successfully"),r(f)},e.onupgradeneeded=s=>{f=s.target.result,console.log("[DB] Creating object stores...")}})}function S(r){if(!r||r.trim().length===0)return"text";const t=r.trim();return N(t)?"json":C(t)?"xml":x(t)?"html":A(r)?"csv":M(r)?"tsv":D(t)?"yaml":B(t)?"sql":"text"}function N(r){try{return typeof JSON.parse(r)=="object"}catch{return!1}}function C(r){if(r.startsWith("<?xml"))return!0;const e=/<([a-zA-Z][a-zA-Z0-9\-_:.]*)[^>]*>[\s\S]*<\/\1>/.test(r),n=/<(html|head|body|div|span|p|a|img|script|style|link|meta)/i.test(r);return e&&!n}function x(r){return[/<!DOCTYPE\s+html/i,/<html[^>]*>/i,/<head[^>]*>/i,/<body[^>]*>/i,/<(div|span|p|a|img|script|style|link|meta|title|h1|h2|h3|h4|h5|h6)[^>]*>/i].some(e=>e.test(r))}function A(r){const t=r.split(`
+`).filter(n=>n.trim());if(t.length<2)return!1;const e=(t[0].match(/,/g)||[]).length;if(e===0)return!1;let s=0;for(let n=1;n<Math.min(t.length,10);n++){const a=(t[n].match(/,/g)||[]).length;Math.abs(a-e)<=1&&s++}return s/Math.min(t.length-1,9)>.5}function M(r){const t=r.split(`
+`).filter(n=>n.trim());if(t.length<2)return!1;const e=(t[0].match(/\t/g)||[]).length;if(e===0)return!1;let s=0;for(let n=1;n<Math.min(t.length,10);n++){const a=(t[n].match(/\t/g)||[]).length;Math.abs(a-e)<=1&&s++}return s/Math.min(t.length-1,9)>.5}function D(r){const t=[/^---\s*$/m,/^\s*[\w-]+:\s+/m,/^\s*-\s+[\w-]+/m];return r.trim().startsWith("{")||r.trim().startsWith("[")||r.trim().startsWith("<")?!1:t.some(e=>e.test(r))}function B(r){const t=["SELECT","INSERT","UPDATE","DELETE","CREATE","DROP","ALTER","FROM","WHERE","JOIN","INNER","LEFT","RIGHT","OUTER","GROUP BY","ORDER BY","HAVING","LIMIT","OFFSET","TABLE","DATABASE","INDEX","VIEW","PROCEDURE"],e=r.toUpperCase();let s=0;for(const n of t)e.includes(n)&&s++;return s>=2}function E(r,t){if(t==="csv"||t==="tsv")return!0;if(t==="json")try{const e=typeof r=="string"?JSON.parse(r):r;if(Array.isArray(e)&&e.length>0){const s=e[0];if(typeof s=="object"&&!Array.isArray(s))return Object.values(s).every(n=>typeof n!="object"||n===null)}if(typeof e=="object"&&!Array.isArray(e))return Object.values(e).every(s=>typeof s!="object"||s===null)}catch{return!1}return t==="xml"?R(r)<=3:!1}function R(r){const e=new DOMParser().parseFromString(r,"text/xml");function s(n){if(!n.children||n.children.length===0)return 1;let a=0;for(const o of n.children)a=Math.max(a,s(o));return a+1}return s(e.documentElement)}function F(r,t={}){const{indent:e=2,minify:s=!1}=t;try{const n=JSON.parse(r);if(s)return JSON.stringify(n);const a=e==="tab"?"	":" ".repeat(parseInt(e)),o=JSON.stringify(n,null,a);return H(o)}catch(n){throw new Error(`JSON Parse Error: ${n.message}`)}}function $(r){try{const t=JSON.parse(r);if(Array.isArray(t)&&t.length>0)return k(t);if(typeof t=="object"&&t!==null)return P(t);throw new Error("Data is not suitable for table conversion")}catch(t){throw new Error(`Table Conversion Error: ${t.message}`)}}function k(r){if(r.length===0)return"<p>Empty array</p>";const t=new Set;r.forEach(n=>{typeof n=="object"&&n!==null&&Object.keys(n).forEach(a=>t.add(a))});const e=Array.from(t);let s='<table class="table table-striped table-bordered table-hover">';return s+="<thead><tr>",e.forEach(n=>{s+=`<th>${p(n)}</th>`}),s+="</tr></thead><tbody>",r.forEach(n=>{s+="<tr>",e.forEach(a=>{const o=n[a];s+=`<td>${p(I(o))}</td>`}),s+="</tr>"}),s+="</tbody></table>",s}function P(r){let t='<table class="table table-striped table-bordered table-hover">';return t+="<thead><tr><th>Key</th><th>Value</th></tr></thead><tbody>",Object.entries(r).forEach(([e,s])=>{t+="<tr>",t+=`<td><strong>${p(e)}</strong></td>`,t+=`<td>${p(I(s))}</td>`,t+="</tr>"}),t+="</tbody></table>",t}function I(r){return r===null?"null":r===void 0?"undefined":typeof r=="object"?JSON.stringify(r):String(r)}function H(r){return r=r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"),r.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,t=>{let e="number";return/^"/.test(t)?/:$/.test(t)?e="key":e="string":/true|false/.test(t)?e="boolean":/null/.test(t)&&(e="null"),`<span class="${e}">${t}</span>`})}function p(r){const t=document.createElement("div");return t.textContent=r,t.innerHTML}function j(r,t={}){const{indent:e=2,selfClosing:s=!0}=t;try{const a=new DOMParser().parseFromString(r,"text/xml"),o=a.querySelector("parsererror");if(o)throw new Error("Invalid XML: "+o.textContent);const i=e==="tab"?"	":" ".repeat(parseInt(e)),c=O(a.documentElement,0,i,s);return X(c)}catch(n){throw new Error(`XML Parse Error: ${n.message}`)}}function O(r,t,e,s){const n=e.repeat(t);let a="";if(r.nodeType===Node.ELEMENT_NODE){const o=r.tagName,i=Array.from(r.attributes).map(l=>` ${l.name}="${l.value}"`).join("");a+=n+"<"+o+i;const c=r.childNodes.length>0,u=r.childNodes.length===1&&r.childNodes[0].nodeType===Node.TEXT_NODE;if(!c&&s)a+=` />
+`;else if(u)a+=">"+y(r.childNodes[0].textContent)+"</"+o+`>
+`;else{a+=`>
+`;for(const l of r.childNodes)if(l.nodeType===Node.ELEMENT_NODE)a+=O(l,t+1,e,s);else if(l.nodeType===Node.TEXT_NODE){const d=l.textContent.trim();d&&(a+=e.repeat(t+1)+y(d)+`
+`)}else l.nodeType===Node.CDATA_SECTION_NODE?a+=e.repeat(t+1)+"<![CDATA["+l.textContent+`]]>
+`:l.nodeType===Node.COMMENT_NODE&&(a+=e.repeat(t+1)+"\x3C!--"+l.textContent+`-->
+`);a+=n+"</"+o+`>
+`}}return a}function U(r){try{const e=new DOMParser().parseFromString(r,"text/xml");if(e.querySelector("parsererror"))throw new Error("Invalid XML");const n=e.documentElement,a=Array.from(n.children);if(a.length>0){const o=a[0].tagName;if(a.every(c=>c.tagName===o))return W(a)}return J(n)}catch(t){throw new Error(`XML Table Conversion Error: ${t.message}`)}}function W(r){const t=new Set;r.slice(0,10).forEach(n=>{Array.from(n.children).forEach(a=>{t.add(a.tagName)}),Array.from(n.attributes).forEach(a=>{t.add("@"+a.name)})});const e=Array.from(t);let s='<table class="table table-striped table-bordered table-hover">';return s+="<thead><tr>",e.forEach(n=>{s+=`<th>${h(n)}</th>`}),s+="</tr></thead><tbody>",r.forEach(n=>{s+="<tr>",e.forEach(a=>{let o="";if(a.startsWith("@")){const i=a.substring(1);o=n.getAttribute(i)||""}else{const i=n.querySelector(a);o=i?i.textContent:""}s+=`<td>${h(o)}</td>`}),s+="</tr>"}),s+="</tbody></table>",s}function J(r){let t='<table class="table table-striped table-bordered table-hover">';return t+="<thead><tr><th>Property</th><th>Value</th></tr></thead><tbody>",Array.from(r.attributes).forEach(e=>{t+="<tr>",t+=`<td><strong>@${h(e.name)}</strong></td>`,t+=`<td>${h(e.value)}</td>`,t+="</tr>"}),Array.from(r.children).forEach(e=>{t+="<tr>",t+=`<td><strong>${h(e.tagName)}</strong></td>`,t+=`<td>${h(e.textContent)}</td>`,t+="</tr>"}),t+="</tbody></table>",t}function X(r){return r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(&lt;\/?)([\w:-]+)/g,'$1<span class="tag">$2</span>').replace(/([\w:-]+)=/g,'<span class="attr-name">$1</span>=').replace(/="([^"]*)"/g,'="<span class="attr-value">$1</span>"')}function y(r){return r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}function h(r){const t=document.createElement("div");return t.textContent=r,t.innerHTML}function V(r,t={}){const{indent:e=2}=t;try{const s=e==="tab"?"	":" ".repeat(parseInt(e)),n=q(r,s);return Y(n)}catch(s){throw new Error(`HTML Format Error: ${s.message}`)}}function q(r,t){let e="",s=0;const n=r.match(/<[^>]+>|[^<]+/g)||[],a=new Set(["a","abbr","acronym","b","bdo","big","br","button","cite","code","dfn","em","i","img","input","kbd","label","map","object","output","q","samp","script","select","small","span","strong","sub","sup","textarea","time","tt","var"]),o=new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);let i=!1;for(let c=0;c<n.length;c++){const u=n[c].trim();if(u)if(u.startsWith("</")){const l=u.match(/<\/(\w+)>/)?.[1]?.toLowerCase();l&&!a.has(l)&&(s--,i||(e+=`
+`+t.repeat(Math.max(0,s))),i=!1),e+=u}else if(u.startsWith("<")){const d=u.match(/<(\w+)/)?.[1]?.toLowerCase();if(d){const v=o.has(d)||u.endsWith("/>"),m=a.has(d);!m&&!i&&(e+=`
+`+t.repeat(s)),e+=u,!v&&!m?(s++,i=!1):m&&(i=!0)}else e+=`
+`+t.repeat(s)+u}else u.trim()&&(i||(e+=`
+`+t.repeat(s)),e+=u,i=!0)}return e.trim()}function Y(r){return r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(&lt;\/?)([\w:-]+)/g,'$1<span class="tag">$2</span>').replace(/([\w:-]+)=/g,'<span class="attr-name">$1</span>=').replace(/="([^"]*)"/g,'="<span class="attr-value">$1</span>"').replace(/='([^']*)'/g,`='<span class="attr-value">$1</span>'`)}function G(r,t={}){const{delimiter:e=","}=t;try{const s=g(r,e);return w(s)}catch(s){throw new Error(`CSV Format Error: ${s.message}`)}}function Z(r){try{const t=g(r,"	");return w(t)}catch(t){throw new Error(`TSV Format Error: ${t.message}`)}}function b(r,t=","){try{const e=g(r,t);if(e.length===0)return"[]";const s=e[0],n=[];for(let a=1;a<e.length;a++){const o={};for(let i=0;i<s.length;i++)o[s[i]]=e[a][i]||"";n.push(o)}return JSON.stringify(n,null,2)}catch(e){throw new Error(`CSV to JSON Error: ${e.message}`)}}function g(r,t){const e=[],s=r.split(`
+`);for(const n of s){if(!n.trim())continue;const a=[];let o="",i=!1;for(let c=0;c<n.length;c++){const u=n[c],l=n[c+1];u==='"'?i&&l==='"'?(o+='"',c++):i=!i:u===t&&!i?(a.push(o.trim()),o=""):o+=u}a.push(o.trim()),e.push(a)}return e}function w(r){if(r.length===0)return"<p>No data to display</p>";let t='<table class="table table-striped table-bordered table-hover">';t+="<thead><tr>",r[0].forEach(e=>{t+=`<th>${T(e)}</th>`}),t+="</tr></thead>",t+="<tbody>";for(let e=1;e<r.length;e++)t+="<tr>",r[e].forEach(s=>{t+=`<td>${T(s)}</td>`}),t+="</tr>";return t+="</tbody></table>",t}function T(r){const t=document.createElement("div");return t.textContent=String(r),t.innerHTML}function z(r,t={}){const{indent:e=2}=t;try{const s=r.split(`
+`);let n="",a=0;const o=e==="tab"?"	":" ".repeat(parseInt(e));for(const i of s){const c=i.trim();if(!c||c.startsWith("#")){n+=i+`
+`;continue}if(c.startsWith("- "))n+=o.repeat(a)+c+`
+`;else if(c.includes(":")){const[u,...l]=c.split(":"),d=l.join(":").trim();n+=o.repeat(a)+u.trim()+":",d&&(n+=" "+d),n+=`
+`,(!d||d===""||d==="|"||d===">")&&a++}else n+=o.repeat(a)+c+`
+`;i.match(/^\S/)&&a>0&&(a=0)}return K(n)}catch(s){throw new Error(`YAML Format Error: ${s.message}`)}}function _(r,t={}){const{indent:e=2}=t;try{const s=e==="tab"?"	":" ".repeat(parseInt(e)),n=["SELECT","FROM","WHERE","JOIN","INNER JOIN","LEFT JOIN","RIGHT JOIN","OUTER JOIN","ON","GROUP BY","HAVING","ORDER BY","LIMIT","OFFSET","INSERT INTO","VALUES","UPDATE","SET","DELETE FROM","CREATE","ALTER","DROP","TABLE","INDEX","VIEW","AND","OR","NOT","IN","EXISTS","BETWEEN","LIKE","UNION","UNION ALL","INTERSECT","EXCEPT"];let a=r;for(const u of n.sort((l,d)=>d.length-l.length)){const l=new RegExp(`\\b${u}\\b`,"gi");a=a.replace(l,`
+`+u.toUpperCase())}const o=a.split(`
+`).map(u=>u.trim()).filter(u=>u);let i="",c=0;for(const u of o){const l=u.toUpperCase();(l.startsWith("FROM")||l.startsWith("WHERE")||l.startsWith("GROUP BY")||l.startsWith("ORDER BY")||l.startsWith("HAVING"))&&(c=Math.max(0,c-1)),i+=s.repeat(c)+u+`
+`,(l.startsWith("SELECT")||l.startsWith("INSERT")||l.startsWith("UPDATE")||l.startsWith("FROM"))&&c++,l.includes("JOIN")&&(c=1)}return Q(i.trim())}catch(s){throw new Error(`SQL Format Error: ${s.message}`)}}function K(r){return r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/^(\s*)([\w-]+):/gm,'$1<span class="key">$2</span>:').replace(/:\s*([^\n]+)/g,': <span class="string">$1</span>').replace(/#.*/g,'<span class="comment">$&</span>')}function Q(r){const t=["SELECT","FROM","WHERE","JOIN","INNER","LEFT","RIGHT","OUTER","ON","GROUP","BY","HAVING","ORDER","LIMIT","OFFSET","AS","INSERT","INTO","VALUES","UPDATE","SET","DELETE","CREATE","ALTER","DROP","TABLE","INDEX","VIEW","DATABASE","AND","OR","NOT","IN","EXISTS","BETWEEN","LIKE","IS","NULL","UNION","ALL","INTERSECT","EXCEPT","DISTINCT","COUNT","SUM","AVG","MIN","MAX","PRIMARY","KEY","FOREIGN","REFERENCES"];let e=r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");for(const s of t){const n=new RegExp(`\\b${s}\\b`,"gi");e=e.replace(n,`<span class="keyword">${s.toUpperCase()}</span>`)}return e=e.replace(/'([^']*)'/g,`<span class="string">'$1'</span>`),e=e.replace(/"([^"]*)"/g,'<span class="string">"$1"</span>'),e=e.replace(/\b(\d+)\b/g,'<span class="number">$1</span>'),e=e.replace(/\b([A-Z_]+)\s*\(/g,'<span class="function">$1</span>('),e}function tt(r){return r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}class et{constructor(){this.inputArea=document.getElementById("inputArea"),this.outputCode=document.getElementById("outputCode"),this.outputArea=document.getElementById("outputArea"),this.tableOutput=document.getElementById("tableOutput"),this.formatSelector=document.getElementById("formatSelector"),this.dropZone=document.getElementById("dropZone"),this.fileInput=document.getElementById("fileInput"),this.formatBtn=document.getElementById("formatBtn"),this.clearInputBtn=document.getElementById("clearInputBtn"),this.copyBtn=document.getElementById("copyBtn"),this.downloadBtn=document.getElementById("downloadBtn"),this.statsInfo=document.getElementById("statsInfo"),this.currentFormat="auto",this.currentInput="",this.currentOutput="",this.initEventListeners()}initEventListeners(){this.fileInput.addEventListener("change",t=>this.handleFileSelect(t)),this.dropZone.addEventListener("click",()=>this.fileInput.click()),this.dropZone.addEventListener("dragover",t=>this.handleDragOver(t)),this.dropZone.addEventListener("dragleave",t=>this.handleDragLeave(t)),this.dropZone.addEventListener("drop",t=>this.handleDrop(t)),this.inputArea.addEventListener("input",()=>this.handleInputChange()),this.formatSelector.addEventListener("change",()=>this.handleFormatChange()),this.formatBtn.addEventListener("click",()=>this.handleFormat()),this.clearInputBtn.addEventListener("click",()=>this.handleClear()),this.copyBtn.addEventListener("click",()=>this.handleCopy()),this.downloadBtn.addEventListener("click",()=>this.handleDownload())}handleDragOver(t){t.preventDefault(),t.stopPropagation(),this.dropZone.classList.add("drag-over")}handleDragLeave(t){t.preventDefault(),t.stopPropagation(),this.dropZone.classList.remove("drag-over")}async handleDrop(t){t.preventDefault(),t.stopPropagation(),this.dropZone.classList.remove("drag-over");const e=t.dataTransfer.files;e.length>0&&await this.loadFile(e[0])}async handleFileSelect(t){const e=t.target.files;e.length>0&&await this.loadFile(e[0])}async loadFile(t){const e=parseInt(document.getElementById("maxFileSize").value)*1024*1024;if(t.size>e){this.showToast(`File too large. Max size: ${e/1024/1024}MB`,"danger");return}try{const s=await t.text();this.inputArea.value=s,this.currentInput=s,this.handleInputChange(),this.showToast(`Loaded ${t.name}`,"success"),this.updateStats()}catch(s){this.showToast(`Error loading file: ${s.message}`,"danger")}}handleInputChange(){const t=this.inputArea.value;if(this.currentInput=t,this.formatSelector.value==="auto"){const e=S(t);this.currentFormat=e,this.updateFormatOptions(e)}else this.currentFormat=this.formatSelector.value,this.updateFormatOptions(this.formatSelector.value);this.updateStats()}handleFormatChange(){const t=this.formatSelector.value;t==="auto"?this.handleInputChange():(this.currentFormat=t,this.updateFormatOptions(t))}updateFormatOptions(t){document.getElementById("jsonOptions").style.display="none",document.getElementById("xmlOptions").style.display="none",document.getElementById("csvOptions").style.display="none",t==="json"?document.getElementById("jsonOptions").style.display="block":t==="xml"?document.getElementById("xmlOptions").style.display="block":(t==="csv"||t==="tsv")&&(document.getElementById("csvOptions").style.display="block")}async handleFormat(){if(!this.currentInput.trim()){this.showToast("Please enter or load some content first","warning");return}try{const t=this.getFormatOptions();let e="",s="",n=!1;switch(this.currentFormat){case"json":e=F(this.currentInput,t),t.showTable&&E(this.currentInput,"json")&&(s=$(this.currentInput),n=!0);break;case"xml":e=j(this.currentInput,t),t.showTable&&E(this.currentInput,"xml")&&(s=U(this.currentInput),n=!0);break;case"html":e=V(this.currentInput,t);break;case"csv":t.convertToJson?(e=b(this.currentInput,","),this.outputCode.className=""):t.showTable&&(s=G(this.currentInput),n=!0,e="See table view");break;case"tsv":t.convertToJson?(e=b(this.currentInput,"	"),this.outputCode.className=""):t.showTable&&(s=Z(this.currentInput),n=!0,e="See table view");break;case"yaml":e=z(this.currentInput,t);break;case"sql":e=_(this.currentInput,t);break;case"text":default:e=tt(this.currentInput);break}this.currentOutput=e,this.outputCode.innerHTML=e,n?(this.tableOutput.innerHTML=s,document.querySelector("#table-tab").parentElement.style.display="block",new bootstrap.Tab(document.querySelector("#table-tab")).show()):document.querySelector("#table-tab").parentElement.style.display="none",this.copyBtn.disabled=!1,this.downloadBtn.disabled=!1,this.showToast(`Formatted as ${this.currentFormat.toUpperCase()}`,"success"),this.updateStats()}catch(t){this.showToast(t.message,"danger"),console.error("Format error:",t)}}getFormatOptions(){const e={indent:document.getElementById("indentSize").value};if(this.currentFormat==="json"){const s=document.querySelector('input[name="jsonFormat"]:checked').value;e.minify=s==="minify",e.showTable=document.getElementById("jsonToTable").checked}else this.currentFormat==="xml"?(e.selfClosing=document.getElementById("xmlSelfClosing").checked,e.showTable=document.getElementById("xmlToTable").checked):(this.currentFormat==="csv"||this.currentFormat==="tsv")&&(e.convertToJson=document.getElementById("csvToJson").checked,e.showTable=document.getElementById("csvToTable").checked);return e}handleClear(){this.inputArea.value="",this.outputCode.innerHTML="",this.tableOutput.innerHTML="",this.currentInput="",this.currentOutput="",this.copyBtn.disabled=!0,this.downloadBtn.disabled=!0,document.querySelector("#table-tab").parentElement.style.display="none",this.updateStats(),this.showToast("Cleared","info")}async handleCopy(){try{const t=document.createElement("div");t.innerHTML=this.currentOutput;const e=t.textContent||t.innerText;await navigator.clipboard.writeText(e),this.showToast("Copied to clipboard","success")}catch{this.showToast("Failed to copy","danger")}}handleDownload(){const t=document.createElement("div");t.innerHTML=this.currentOutput;const e=t.textContent||t.innerText,a=`formatted.${{json:"json",xml:"xml",html:"html",csv:"csv",tsv:"tsv",yaml:"yaml",sql:"sql",text:"txt"}[this.currentFormat]||"txt"}`,o=new Blob([e],{type:"text/plain"}),i=URL.createObjectURL(o),c=document.createElement("a");c.href=i,c.download=a,c.click(),URL.revokeObjectURL(i),this.showToast(`Downloaded as ${a}`,"success")}updateStats(){const t=this.currentInput.length;this.currentOutput.length;const e=this.currentInput.split(`
+`).length;t===0?this.statsInfo.textContent="Ready":this.statsInfo.textContent=`Input: ${t} chars, ${e} lines | Format: ${this.currentFormat.toUpperCase()}`}showToast(t,e="info"){const s=`
+      <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-${e} text-white">
+          <strong class="me-auto">Workbench</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">${t}</div>
+      </div>
+    `,n=document.querySelector(".toast-container");n.insertAdjacentHTML("beforeend",s);const a=n.lastElementChild;new bootstrap.Toast(a,{delay:3e3}).show(),a.addEventListener("hidden.bs.toast",()=>a.remove())}}console.log("[App] Developer Workbench Initializing...");let rt;async function nt(){try{await L(),console.log("[App] Database initialized"),rt=new et,console.log("[App] UI Controller initialized"),console.log("[App] ✓ Workbench ready!")}catch(r){console.error("[App] Initialization failed:",r)}}document.addEventListener("DOMContentLoaded",nt);</script>
+  <style rel="stylesheet" crossorigin>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;line-height:1.6;color:#e0e0e0;background:#0d1117;overflow-x:hidden}#app{min-height:100vh;display:flex;flex-direction:column}:root{--bg-primary: #0d1117;--bg-secondary: #161b22;--bg-tertiary: #1c2128;--bg-hover: #21262d;--border-color: #30363d;--text-primary: #e6edf3;--text-secondary: #8b949e;--accent-blue: #58a6ff;--accent-green: #3fb950;--accent-yellow: #d29922;--accent-red: #f85149;--accent-purple: #bc8cff;--shadow: rgba(0, 0, 0, .3)}.app-header{background:var(--bg-secondary);border-bottom:2px solid var(--border-color);padding:1.5rem 2rem;text-align:center}.app-header h1{color:var(--accent-blue);font-size:2rem;font-weight:600;margin:0}.app-header h1 i{margin-right:.5rem;color:var(--accent-green)}.app-header .subtitle{color:var(--text-secondary);margin:.5rem 0 0;font-size:.95rem}.main-content{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;padding:1rem;flex:1;min-height:0}.panel{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;display:flex;flex-direction:column;min-height:0;overflow:hidden}.input-panel,.output-panel{min-width:400px}.panel-header{background:var(--bg-tertiary);border-bottom:1px solid var(--border-color);padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center}.panel-header h3{color:var(--text-primary);font-size:1.1rem;font-weight:600;margin:0}.panel-header h3 i{margin-right:.5rem;color:var(--accent-blue)}.header-actions{display:flex;gap:.5rem}.drop-zone{background:var(--bg-tertiary);border:2px dashed var(--border-color);border-radius:6px;margin:1rem;padding:2rem;text-align:center;transition:all .3s ease;cursor:pointer}.drop-zone:hover{border-color:var(--accent-blue);background:var(--bg-hover)}.drop-zone.drag-over{border-color:var(--accent-green);background:#3fb9501a}.drop-zone i{font-size:3rem;color:var(--accent-blue);display:block;margin-bottom:1rem}.drop-zone p{color:var(--text-primary);font-size:1.1rem;margin:.5rem 0}.drop-zone small{color:var(--text-secondary);font-size:.9rem}.code-area{background:var(--bg-primary);border:1px solid var(--border-color);color:var(--text-primary);font-family:Consolas,Monaco,Courier New,monospace;font-size:.9rem;line-height:1.5;padding:1rem;margin:1rem;flex:1;resize:none;border-radius:4px;min-height:300px}.code-area:focus{outline:none;border-color:var(--accent-blue)}.code-area::placeholder{color:var(--text-secondary)}#outputArea{margin:0;padding:1rem;overflow:auto;border:none;border-radius:0;flex:1}#outputCode{color:var(--text-primary)}.format-info{display:flex;align-items:center;gap:1rem;padding:0 1rem 1rem}.format-info label{color:var(--text-secondary);font-size:.9rem;white-space:nowrap}.options-panel{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;width:280px;display:flex;flex-direction:column}.options-content{padding:1.5rem;overflow-y:auto}.option-group{margin-bottom:1.5rem}.option-group label{color:var(--text-primary);font-size:.9rem;font-weight:500;display:block;margin-bottom:.5rem}.option-group .form-check{margin-bottom:.5rem}.option-group .form-check-label{color:var(--text-secondary);font-size:.85rem;font-weight:400}.form-select,.form-control{background:var(--bg-tertiary);border:1px solid var(--border-color);color:var(--text-primary)}.form-select:focus,.form-control:focus{background:var(--bg-tertiary);border-color:var(--accent-blue);color:var(--text-primary);box-shadow:0 0 0 .2rem #58a6ff40}.form-select option{background:var(--bg-tertiary);color:var(--text-primary)}.form-check-input{background-color:var(--bg-tertiary);border:1px solid var(--border-color)}.form-check-input:checked{background-color:var(--accent-blue);border-color:var(--accent-blue)}.form-check-input:focus{border-color:var(--accent-blue);box-shadow:0 0 0 .2rem #58a6ff40}.btn{font-size:.875rem;font-weight:500;border-radius:6px;transition:all .2s ease}.btn-primary{background:var(--accent-blue);border-color:var(--accent-blue);color:#000}.btn-primary:hover{background:#4a94e6;border-color:#4a94e6;transform:translateY(-1px)}.btn-outline-primary{border-color:var(--accent-blue);color:var(--accent-blue)}.btn-outline-primary:hover{background:var(--accent-blue);color:#000}.btn-outline-success{border-color:var(--accent-green);color:var(--accent-green)}.btn-outline-success:hover{background:var(--accent-green);color:#000}.btn-outline-info{border-color:var(--accent-blue);color:var(--accent-blue)}.btn-outline-info:hover{background:var(--accent-blue);color:#000}.btn-outline-danger{border-color:var(--accent-red);color:var(--accent-red)}.btn-outline-danger:hover{background:var(--accent-red);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}.nav-tabs{background:var(--bg-tertiary);border-bottom:1px solid var(--border-color);padding:0 1rem}.nav-tabs .nav-link{color:var(--text-secondary);border:none;border-bottom:2px solid transparent;padding:.75rem 1rem}.nav-tabs .nav-link:hover{color:var(--text-primary);border-bottom-color:var(--accent-blue)}.nav-tabs .nav-link.active{color:var(--accent-blue);background:transparent;border-bottom-color:var(--accent-blue)}.tab-content{flex:1;display:flex;flex-direction:column;min-height:0}.tab-pane{flex:1;display:none;overflow:auto}.tab-pane.active{display:flex;flex-direction:column}.table-container{overflow:auto;padding:1rem;flex:1}.table{color:var(--text-primary);border-color:var(--border-color)}.table thead th{background:var(--bg-tertiary);border-color:var(--border-color);color:var(--accent-blue);font-weight:600;position:sticky;top:0;z-index:10}.table tbody td{border-color:var(--border-color);font-family:Consolas,Monaco,Courier New,monospace;font-size:.85rem}.table tbody tr:hover{background:var(--bg-hover)}.footer-stats{background:var(--bg-secondary);border-top:1px solid var(--border-color);padding:.75rem 2rem;color:var(--text-secondary);font-size:.85rem;text-align:center}.toast{background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary)}.toast-header{border-bottom:1px solid var(--border-color)}.toast-body{color:var(--text-primary)}.syntax-json .key{color:var(--accent-blue)}.syntax-json .string{color:var(--accent-green)}.syntax-json .number{color:var(--accent-purple)}.syntax-json .boolean{color:var(--accent-yellow)}.syntax-json .null{color:var(--accent-red)}.syntax-xml .tag{color:var(--accent-blue)}.syntax-xml .attr-name{color:var(--accent-green)}.syntax-xml .attr-value{color:var(--accent-yellow)}.syntax-html .tag{color:var(--accent-blue)}.syntax-html .attr-name{color:var(--accent-green)}.syntax-html .attr-value{color:var(--accent-yellow)}.syntax-sql .keyword{color:var(--accent-purple)}.syntax-sql .function{color:var(--accent-blue)}.syntax-sql .string{color:var(--accent-green)}::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--bg-primary)}::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:5px}::-webkit-scrollbar-thumb:hover{background:var(--text-secondary)}@media (max-width: 1400px){.main-content{grid-template-columns:1fr;grid-template-rows:auto auto auto}.options-panel{width:100%}.input-panel,.output-panel{min-width:unset}}</style>
+</head>
+<body>
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+  <div class="container-fluid p-0">
+    <div id="app">
+      <!-- Header -->
+      <header class="app-header">
+        <h1><i class="fas fa-tools"></i> Developer Workbench</h1>
+        <p class="subtitle">Format, Transform & Validate Code</p>
+      </header>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Input Panel -->
+        <div class="panel input-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-file-import"></i> Input</h3>
+            <div class="header-actions">
+              <label for="fileInput" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-folder-open"></i> Open File
+              </label>
+              <input type="file" id="fileInput" hidden accept=".json,.xml,.html,.htm,.csv,.tsv,.txt,.yaml,.yml,.sql">
+              <button id="clearInputBtn" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Drop Zone -->
+          <div id="dropZone" class="drop-zone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Drag & drop files here</p>
+            <small>or paste content below</small>
+          </div>
+
+          <!-- Input Textarea -->
+          <textarea id="inputArea" class="code-area" placeholder="Paste your code here or drop a file above..."></textarea>
+
+          <!-- Format Detection -->
+          <div class="format-info">
+            <label>Detected Format:</label>
+            <select id="formatSelector" class="form-select form-select-sm">
+              <option value="auto">Auto-detect</option>
+              <option value="json">JSON</option>
+              <option value="xml">XML</option>
+              <option value="html">HTML</option>
+              <option value="csv">CSV</option>
+              <option value="tsv">TSV (Tab-Delimited)</option>
+              <option value="yaml">YAML</option>
+              <option value="sql">SQL</option>
+              <option value="text">Plain Text</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Options Panel -->
+        <div class="options-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-cog"></i> Options</h3>
+          </div>
+
+          <div class="options-content">
+            <!-- Common Options -->
+            <div class="option-group">
+              <label for="indentSize">Indent Size:</label>
+              <select id="indentSize" class="form-select form-select-sm">
+                <option value="2" selected>2 spaces</option>
+                <option value="4">4 spaces</option>
+                <option value="tab">Tab</option>
+              </select>
+            </div>
+
+            <!-- JSON Options -->
+            <div id="jsonOptions" class="option-group" style="display: none;">
+              <label>JSON Output:</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="jsonFormat" id="jsonPrettify" value="prettify" checked>
+                <label class="form-check-label" for="jsonPrettify">Prettify</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="jsonFormat" id="jsonMinify" value="minify">
+                <label class="form-check-label" for="jsonMinify">Minify (Single Line)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="jsonToTable">
+                <label class="form-check-label" for="jsonToTable">Convert to Table (if flat)</label>
+              </div>
+            </div>
+
+            <!-- XML Options -->
+            <div id="xmlOptions" class="option-group" style="display: none;">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="xmlSelfClosing" checked>
+                <label class="form-check-label" for="xmlSelfClosing">Self-closing tags</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="xmlToTable">
+                <label class="form-check-label" for="xmlToTable">Convert to Table (if flat)</label>
+              </div>
+            </div>
+
+            <!-- CSV Options -->
+            <div id="csvOptions" class="option-group" style="display: none;">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="csvToJson">
+                <label class="form-check-label" for="csvToJson">Convert to JSON</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="csvToTable" checked>
+                <label class="form-check-label" for="csvToTable">Show as Table</label>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="option-group">
+              <label for="maxFileSize">Max File Size (MB):</label>
+              <input type="number" id="maxFileSize" class="form-control form-control-sm" value="10" min="1" max="100">
+            </div>
+
+            <!-- Format Button -->
+            <button id="formatBtn" class="btn btn-primary w-100 mt-3">
+              <i class="fas fa-magic"></i> Format
+            </button>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="panel output-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-file-export"></i> Output</h3>
+            <div class="header-actions">
+              <button id="copyBtn" class="btn btn-sm btn-outline-success" disabled>
+                <i class="fas fa-copy"></i> Copy
+              </button>
+              <button id="downloadBtn" class="btn btn-sm btn-outline-info" disabled>
+                <i class="fas fa-download"></i> Download
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs" id="outputTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="formatted-tab" data-bs-toggle="tab" data-bs-target="#formatted" type="button" role="tab">
+                Formatted
+              </button>
+            </li>
+            <li class="nav-item" role="presentation" style="display: none;">
+              <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab">
+                Table View
+              </button>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content" id="outputTabContent">
+            <!-- Formatted Output -->
+            <div class="tab-pane fade show active" id="formatted" role="tabpanel">
+              <pre id="outputArea" class="code-area"><code id="outputCode"></code></pre>
+            </div>
+            <!-- Table Output -->
+            <div class="tab-pane fade" id="table" role="tabpanel">
+              <div id="tableOutput" class="table-container"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Stats -->
+      <div class="footer-stats">
+        <span id="statsInfo">Ready</span>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
