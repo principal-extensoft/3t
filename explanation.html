@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catastrophic Code Deletion - Post-Mortem & Prevention Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { 
+            color: #dc2626; 
+            border-bottom: 4px solid #dc2626; 
+            padding-bottom: 10px; 
+        }
+        h2 { 
+            color: #ea580c; 
+            border-left: 4px solid #ea580c; 
+            padding-left: 10px; 
+            margin-top: 30px; 
+        }
+        h3 { 
+            color: #f59e0b; 
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .warning {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .tip {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .example {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .red-flag {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .green-check {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #dc2626;
+        }
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            color: #10b981;
+            padding: 0;
+        }
+        .promise-box {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .promise-box h3 {
+            color: white;
+            margin-top: 0;
+        }
+        .promise-box ul {
+            margin: 10px 0;
+        }
+        .incident-box {
+            background: #fef2f2;
+            border: 2px solid #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .workflow-box {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>?? Catastrophic Code Deletion - Post-Mortem & Prevention Guide</h1>
+    <p><strong>Date:</strong> <span id="dateStamp"></span></p>
+    <p><strong>File:</strong> <code>my-renewal-workflow.mjs</code></p>
+    <p><strong>Impact:</strong> <span style="color: #dc2626; font-weight: bold;">20+ functions accidentally deleted</span></p>
+
+    <div class="incident-box">
+        <h2 style="margin-top: 0;">?? Incident Summary</h2>
+        <p><strong>What Happened:</strong> When attempting to remove 2 specific functions (<code>completeStep()</code> and <code>uncompleteStep()</code>) from the workflow file, the AI edit tool aggressively deleted approximately 20+ functions, including critical calendar rendering and navigation functions.</p>
+        
+        <p><strong>Root Cause:</strong> Vague edit instruction combined with aggressive AI inference by the <code>edit_file</code> tool.</p>
+        
+        <p><strong>Resolution:</strong> All functions were manually restored and verified.</p>
+        
+        <p><strong>Lesson Learned:</strong> Always request explicit confirmation and line-by-line details before executing large-scale code modifications.</p>
+    </div>
+
+    <div class="section">
+        <h2>?? What Went Wrong</h2>
+
+        <h3>The Problematic Instruction</h3>
+        <div class="example">
+Instruction Given: "Remove old completeStep and uncompleteStep methods that are now in the modal"
+        </div>
+
+        <h3>How the AI Interpreted It</h3>
+        <ol>
+            <li><strong>Located mention of <code>completeStep</code></strong> in the file around line 450</li>
+            <li><strong>Found <code>startPolicyRenewal()</code></strong> much later in the file</li>
+            <li><strong>Assumed everything between was "old methods to remove"</strong></li>
+            <li><strong>Deleted entire block</strong> including:
+                <ul>
+                    <li>? <code>renderCurrentView()</code></li>
+                    <li>? <code>setupEventListeners()</code></li>
+                    <li>? <code>navigateCalendarMonth()</code></li>
+                    <li>? <code>renderMonthTabs()</code></li>
+                    <li>? <code>getFilteredPolicies()</code></li>
+                    <li>? <code>renderCalendar()</code></li>
+                    <li>? <code>renderCalendarGrid()</code></li>
+                    <li>? <code>createCalendarDay()</code></li>
+                    <li>? <code>showCalendarDayDetails()</code></li>
+                    <li>? <code>createBenchmarkCard()</code></li>
+                    <li>? And 10+ more critical functions...</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Why the Tool Behaved This Way</h3>
+        <p>The <code>edit_file</code> tool uses AI inference to understand code context. When given ambiguous instructions, it makes assumptions. In this case:</p>
+        <ul>
+            <li>?? <strong>Vague instruction:</strong> "Remove old methods" (which methods? how many?)</li>
+            <li>?? <strong>No line numbers specified:</strong> Tool had to guess boundaries</li>
+            <li>?? <strong>No explicit exclusions:</strong> Didn't know to preserve calendar functions</li>
+            <li>?? <strong>Pattern matching gone wrong:</strong> Saw a large block of functions and assumed they were all related</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>??? Prevention Strategies - How to Protect Your Code</h2>
+
+        <h3>1. Always Request Explicit Details First</h3>
+        <div class="tip">
+            <strong>? GOOD PROMPT:</strong>
+            <div class="example">
+"Before you change anything, list exactly:
+1. Which functions you're adding (with line numbers)
+2. Which functions you're removing (with line numbers)
+3. Which functions you're NOT touching
+
+Wait for my approval."
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>? BAD PROMPT:</strong>
+            <div class="example">
+"Move the command logic to the modal" (Too vague!)
+            </div>
+        </div>
+
+        <h3>2. Demand Line Number References</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Instead of This ?</th>
+                    <th>Say This ?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>"Remove old methods"</td>
+                    <td>"Remove ONLY lines 450-470 and 810-825"</td>
+                </tr>
+                <tr>
+                    <td>"Add the function"</td>
+                    <td>"Add completeStep() after line 340"</td>
+                </tr>
+                <tr>
+                    <td>"Clean up the code"</td>
+                    <td>"Remove commented code at lines 120, 245, 380"</td>
+                </tr>
+                <tr>
+                    <td>"Refactor this section"</td>
+                    <td>"Modify ONLY the init() function at line 95"</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. Use "Surgical Edit" Language</h3>
+        <div class="tip">
+            <strong>Surgical Edit Vocabulary:</strong>
+            <ul>
+                <li>? "Make a <strong>surgical</strong> edit to add X at line 500"</li>
+                <li>? "Touch <strong>ONLY</strong> the completeStep function"</li>
+                <li>? "Add function X <strong>without changing anything else</strong>"</li>
+                <li>? "Insert these 5 lines at line 340, <strong>preserve all other code</strong>"</li>
+            </ul>
+        </div>
+
+        <h3>4. Request Preview/Diff Before Execution</h3>
+        <div class="example">
+YOU: "Show me exactly what you're going to change before you execute it. 
+     Use a before/after format or diff."
+
+AI: [Shows specific changes]
+
+YOU: "Approved" or "No, modify your approach"
+        </div>
+
+        <h3>5. Watch for Red Flag Phrases</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Red Flag ??</th>
+                    <th>What to Ask ?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="red-flag">??</span> "I'll remove old code..."</td>
+                    <td><span class="green-check">?</span> "Which exact functions? Give me line numbers first"</td>
+                </tr>
+                <tr>
+                    <td><span class="red-flag">??</span> "I'll clean up the file..."</td>
+                    <td><span class="green-check">?</span> "Define 'clean up' - what specifically are you removing?"</td>
+                </tr>
+                <tr>
+                    <td><span class="red-flag">??</span> "I'll refactor this section..."</td>
+                    <td><span class="green-check">?</span> "Show me the before and after for review first"</td>
+                </tr>
+                <tr>
+                    <td><span class="red-flag">??</span> "I'll update the methods..."</td>
+                    <td><span class="green-check">?</span> "How many methods? Which ones? Show me the list"</td>
+                </tr>
+                <tr>
+                    <td><span class="red-flag">??</span> "Let me optimize this..."</td>
+                    <td><span class="green-check">?</span> "Stop. Describe the optimization first, don't execute"</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>6. Set Clear Boundaries</h3>
+        <div class="tip">
+            <strong>Example Boundary Setting:</strong>
+            <div class="example">
+"I need you to add completeStep() to the modal.
+
+DO:
+? Add the function to policy-renewal-detail-modal.mjs
+? Import ApiService if needed
+
+DO NOT:
+? Remove anything from my-renewal-workflow.mjs
+? Touch any calendar functions
+? Modify any existing functions
+
+I will manually remove from the workflow file myself."
+            </div>
+        </div>
+
+        <h3>7. Use Version Control (Git) Religiously</h3>
+        <div class="warning">
+            <strong>?? CRITICAL:</strong> Always commit working code before asking for AI assistance with edits.
+            <br><br>
+            If a catastrophic deletion happens, you can instantly revert:
+            <div class="example">
+git diff                    # See what changed
+git checkout -- filename    # Revert to last commit
+git reset --hard HEAD       # Nuclear option (revert everything)
+            </div>
+        </div>
+
+        <h3>8. Request Function Count Verification</h3>
+        <div class="example">
+YOU: "After your edit, verify that my-renewal-workflow.mjs still has:
+     - renderCalendar()
+     - getFilteredPolicies()
+     - navigateCalendarMonth()
+     - All 25+ original functions intact"
+        </div>
+    </div>
+
+    <div class="workflow-box">
+        <h2 style="margin-top: 0;">? Recommended Safe Workflow</h2>
+        
+        <h3>Step 1: Request Analysis</h3>
+        <div class="example">
+YOU: "I want to move completeStep to the modal. 
+     First, ANALYZE what this requires. Don't code yet."
+        </div>
+
+        <h3>Step 2: Review the Plan</h3>
+        <div class="example">
+AI: "To move completeStep to the modal, I need to:
+
+     1. ADD to policy-renewal-detail-modal.mjs:
+        - Import ApiService (line 2)
+        - Add completeStep() method (after line 340)
+        - Add uncompleteStep() method (after line 360)
+     
+     2. MODIFY in my-renewal-workflow.mjs:
+        - Change init() callback at line 115 to use onReload instead
+        - Remove lines 450-470 (completeStep function)
+        - Remove lines 810-825 (uncompleteStep function)
+     
+     3. PRESERVE (DO NOT TOUCH):
+        - All calendar functions (lines 500-950)
+        - All rendering functions
+        - All 23 other functions
+     
+     Shall I proceed?"
+        </div>
+
+        <h3>Step 3: Approve or Modify</h3>
+        <div class="example">
+YOU: "Approved for modal changes. 
+     For workflow file: Only add the onReload callback.
+     I'll manually remove the old functions myself."
+        </div>
+
+        <h3>Step 4: Verify After Each Edit</h3>
+        <div class="example">
+AI: "Edit complete. I modified lines 115-118 in my-renewal-workflow.mjs.
+     All other functions remain intact."
+
+YOU: "Build it and verify no functions were lost"
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>?? Quick Reference - Prevention Checklist</h2>
+        
+        <h3>Before ANY code modification, ensure:</h3>
+        <ul style="list-style: none; padding-left: 0;">
+            <li>? Git commit of current working state</li>
+            <li>? AI has provided line numbers for changes</li>
+            <li>? AI has listed what will NOT be touched</li>
+            <li>? You've approved the specific plan</li>
+            <li>? Edit scope is clearly bounded (surgical)</li>
+            <li>? Post-edit verification plan is defined</li>
+        </ul>
+
+        <h3>After ANY code modification, verify:</h3>
+        <ul style="list-style: none; padding-left: 0;">
+            <li>? Build succeeds</li>
+            <li>? Function count is correct</li>
+            <li>? Critical functions still exist</li>
+            <li>? UI functionality still works</li>
+            <li>? Git diff shows ONLY intended changes</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>?? Prompting Templates</h2>
+
+        <h3>Safe Addition Template</h3>
+        <pre><code>"Add [function name] to [filename] after line [X].
+Do NOT remove or modify any existing code.
+Show me what you'll add before executing."</code></pre>
+
+        <h3>Safe Removal Template</h3>
+        <pre><code>"I want to remove [specific function] from [filename].
+First, tell me:
+1. What line numbers it spans
+2. What functions come before and after it
+3. Confirm you won't touch those other functions
+
+Wait for approval."</code></pre>
+
+        <h3>Safe Refactor Template</h3>
+        <pre><code>"I want to modify [function name] in [filename].
+Show me a before/after diff of JUST that function.
+Confirm you won't touch:
+- [list critical functions to preserve]
+
+Wait for approval."</code></pre>
+
+        <h3>Emergency Stop Template</h3>
+        <pre><code>"STOP. Before you change anything:
+1. List every line number you plan to modify
+2. List every function you plan to add/remove/change
+3. Confirm all other functions stay intact
+
+Do NOT execute until I approve."</code></pre>
+    </div>
+
+    <div class="promise-box">
+        <h3>?? AI Assistant's Promise Going Forward</h3>
+        <p>To prevent future catastrophic deletions, I commit to:</p>
+        <ul>
+            <li>? <strong>Always list exact changes</strong> with line numbers before executing</li>
+            <li>? <strong>Explicitly state what I'm NOT touching</strong> for every edit</li>
+            <li>? <strong>Request approval</strong> before making large-scale modifications</li>
+            <li>? <strong>Use minimal, surgical edits</strong> instead of broad refactoring</li>
+            <li>? <strong>Verify function counts</strong> after edits that involve removals</li>
+            <li>? <strong>Provide diffs</strong> when changes affect multiple areas</li>
+            <li>? <strong>Warn about scope</strong> if an edit might be risky</li>
+            <li>? <strong>Prefer adding over removing</strong> when possible (let user remove manually)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>?? Additional Resources</h2>
+        
+        <h3>Files to Review</h3>
+        <ul>
+            <li><code>/ai/development/concepts/dev-concepts.html</code> - Project architecture and context</li>
+            <li><code>/ai/development/concepts/explanation.html</code> - This file (catastrophe prevention)</li>
+        </ul>
+
+        <h3>Best Practices Documentation</h3>
+        <ul>
+            <li><strong>Git Workflow:</strong> Commit before AI edits, review diffs after</li>
+            <li><strong>Code Review:</strong> Always inspect AI-generated changes before running</li>
+            <li><strong>Communication:</strong> Be explicit, demand specifics, don't assume</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>?? Key Takeaways</h2>
+        
+        <div class="tip">
+            <h3 style="margin-top: 0;">For the Developer:</h3>
+            <ul>
+                <li>?? <strong>You are in control</strong> - AI should wait for approval on destructive operations</li>
+                <li>?? <strong>Specificity is safety</strong> - Vague requests lead to unexpected results</li>
+                <li>?? <strong>Git is your safety net</strong> - Always have a recent commit to fall back on</li>
+                <li>?? <strong>Question everything</strong> - If an AI's plan seems broad, challenge it</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h3 style="margin-top: 0;">For the AI Assistant:</h3>
+            <ul>
+                <li>?? <strong>Never assume scope</strong> - Always confirm exact boundaries</li>
+                <li>?? <strong>Prefer surgical over sweeping</strong> - Small targeted edits are safer</li>
+                <li>?? <strong>Preservation over deletion</strong> - When in doubt, preserve existing code</li>
+                <li>?? <strong>Transparency is critical</strong> - Show your work before executing</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Set timestamp
+        document.getElementById('dateStamp').textContent = new Date().toLocaleString();
+    </script>
+</body>
+</html>
